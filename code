@@ -1,0 +1,165 @@
+import os
+import sqlite3
+from tkinter import *
+from tkinter import messagebox
+def user_details():
+    connection = sqlite3.connect(os.getcwd()+"\\assets\\"+"user.db")
+    cursorObj = connection.cursor()
+    cursorObj.execute("CREATE TABLE IF NOT EXISTS user (username text, password text)")
+    connection.commit()
+user_details()
+def insert_user_values(username, password):
+    connection = sqlite3.connect(os.getcwd()+"\\assets\\"+"user.db")
+    cursorObj = connection.cursor()
+    cursorObj.execute("INSERT INTO  user VALUES(?,?)", (username, password))
+    connection.commit()
+    passwords_lists()
+def update_user_values(username, password):
+    connection = sqlite3.connect(os.getcwd()+"\\assets\\"+"user.db")
+    cursorObj = connection.cursor()
+    cursorObj.execute("UPDATE user SET password=? WHERE username=?", (password, username))
+    connection.commit()
+    passwords_lists()
+def passwords_lists():
+    global res, list1, list2, list_u, list_P
+    connection = sqlite3.connect(os.getcwd()+"\\assets\\"+"user.db")
+    cursorObj = connection.cursor()
+    cursorObj.execute('SELECT username FROM user')
+    list1 = cursorObj.fetchall()
+    cursorObj.execute('SELECT password FROM user')
+    list2 = cursorObj.fetchall()
+    list_u = []
+    list_p = []
+    for i in list1:
+        for j in i:
+            list_u.append(j)
+    for i in list2:
+        for j in i:
+            list_p.append(j)
+    res = dict()
+    for u, p in zip(list1, list2):
+        for i, j in zip(u, p):
+            res[i] = j
+    return res
+    connection.close()
+passwords_lists()
+def conformation3():
+    answer3 = messagebox.askquestion("Please Confirm", "Are you sure?")
+    username_list = []
+    for key in res:
+        username_list.append(key)
+    if answer3=="yes":
+        if fM_entry.get() in username_list:
+            update_user_values(fM_entry.get(), f_pass_entry.get())
+            forgot.destroy()
+            user_login()
+        else:
+            Label(forgot, text="Username is wrong", font=('Arial 17 bold'), fg="red").pack()
+def user_forgot():
+    login_user.destroy()
+    global fU_entry,fM_entry,f_pass_entry, forgot
+    forgot = Tk()
+    f_username = StringVar()
+    master_p = StringVar()
+    new_pass = StringVar()
+    forgot.geometry("512x512")
+    forgot.title("Forgot Page")
+    fM_label = Label(forgot, text="Enter Username", fg="black", font=('Arial 17 bold'), bg="white").pack()
+    fM_entry = Entry(forgot, font=('Arial 17 bold'),width=21, borderwidth=5, bg="white", textvariable=master_p, fg="black")
+    fM_entry.pack()
+    f_pass_label = Label(forgot, text="Enter New Password", fg="black", font=('Arial 17 bold'), bg="white").pack()
+    f_pass_entry = Entry(forgot, font=('Arial 17 bold'),width=21, borderwidth=5, bg="white", textvariable=new_pass, fg="black", show="*")
+    f_pass_entry.pack()
+    f_submit = Button(forgot, text="Submit", font=('Arial 13 bold'),fg="White", bg="Green", command=conformation3).pack()
+    forgot.mainloop()
+def conformation():
+    login.destroy()
+    user_login()
+def success():
+    login_user.destroy()
+    global login
+    login = Tk()
+    login.geometry("512x512")
+    label_success = Label(login,text="Login successfully",bg = "yellow",fg = "red",font = "serif 20 bold").pack(pady = 200)
+    logout_button = Button(login, text="Logout", fg="white", bg="red", font=('Arial 11 underline'),command = conformation).place(x=440, y=10)
+def user_check():
+    if(name_box.get() in list_u and password_box.get() == res[name_box.get()]):
+        success()
+    else:
+        Label(login_user, text="Invalid Credentials !!", fg="red", bg="#2A2A29").place(x=191,y=155)
+
+def update_user():
+    register.destroy()
+    user_login()
+def new_user_check():
+    if (user_password_entry.get() != user_confirm_password_entry.get()):
+        Label(register, text="Passwords do not match\nPlease check & type again !!", font=('arial 15 bold'), fg="red", bg="#F0F0F0").place(x=125,y=380)
+    else:
+        insert_user_values(user_name_entry.get(),user_password_entry.get())
+        update_user()
+def register_user():
+    login_user.destroy()
+    global user_fullname_entry,user_name_entry, user_password_entry, user_confirm_password_entry, user_phone_entry, register
+    register = Tk()
+    register.geometry("512x512")
+    register.title("Registration")
+    new_fullname = StringVar()
+    new_username = StringVar()
+    new_password = StringVar()
+    confirm_password = StringVar()
+    new_phonenumber = StringVar()
+
+    user_fullname = Label(register, text="Enter Full name of user", font=('Helvetica',12), fg="black", bg="#F0F0F0").pack()
+    user_fullname_entry = Entry(register, font=('Helvetica',15), width=21, borderwidth=5, textvariable=new_fullname, bg="gold", fg="black")
+    user_fullname_entry.pack()
+
+    user_name = Label(register, text="Enter new Username", font=('Helvetica',12), fg="black", bg="#F0F0F0").pack()
+    user_name_entry = Entry(register, font=('Helvetica',15), width=21, borderwidth=5, textvariable=new_username, bg="gold", fg="black") 
+    user_name_entry.pack()
+
+    user_password = Label(register, text="Enter new Password", font=('Helvetica',12), fg="black", bg="#F0F0F0").pack()
+    user_password_entry = Entry(register, font=('Helvetica',15), width=21, borderwidth=5, textvariable=new_password, bg="gold", fg="black", show="*")
+    user_password_entry.pack()
+
+    user_confirm_password = Label(register, text="Confirm new Password", font=('Helvetica',12), fg="black", bg="#F0F0F0").pack()
+    user_confirm_password_entry = Entry(register, font=('Helvetica',15), width=21, borderwidth=5, textvariable=confirm_password, bg="gold", fg="black", show="*")
+    user_confirm_password_entry.pack()
+
+    user_phone_label = Label(register, text="Enter Phone Number", font=('Helvetica',12), fg="black", bg="#F0F0F0").pack()
+    user_phone_entry = Entry(register, font=('Helvetica',15), width=21, borderwidth=5, textvariable=new_phonenumber, bg="gold", fg="black")
+    user_phone_entry.pack()
+
+    white_label = Label(register, text=" ", bg="#F0F0F0").pack()
+    new_user_submit = Button(register, borderwidth=5, text="SUBMIT", font=('Helvetica',12), fg="black", bg="green", command=new_user_check).pack()
+
+    register.mainloop()
+
+def user_login():
+    global login_user
+    login_user = Tk()
+    login_user.geometry("512x512")
+    login_user.title("Login Page")
+    global name_box, password_box
+    user_name = StringVar()
+    pass_word = StringVar()
+
+    #This code below is for username details and boxes
+    username_text = Label(login_user, text="Enter Username", fg="black", font=('Arial 17 bold'), bg="white").pack()
+    name_box = Entry(login_user, width=21, font=('Arial 17 bold'), borderwidth=5, bg="white", textvariable=user_name, fg="black")
+    name_box.pack()
+
+    #This code below is for password details and boxes
+    password_text = Label(login_user, font=('Arial 17 bold'),text="Enter Password", fg="black", bg="white").pack()
+    password_box = Entry(login_user, font=('Arial 17 bold'),width=21, borderwidth=5, bg="white", textvariable=pass_word, fg="black", show="*")
+    password_box.pack()
+
+    Label(login_user, text="\n",bg="white").pack()
+    #Login button code chunk is below
+    login_button = Button(login_user, text="Login", font=('Arial 17 bold'),fg="white", bg="green",command = user_check)
+    login_button.pack()
+    forgot_label = Button(login_user, text="Forgot Password!!", font=('Arial 13 bold'),fg="Red", bg="Black", command = user_forgot)
+    forgot_label.pack()
+    signup_button = Button(login_user, text="signup", font=('Arial 17 bold'),fg="white", bg="green",command = register_user)
+    signup_button.pack()
+    login_user.mainloop()
+user_login()
